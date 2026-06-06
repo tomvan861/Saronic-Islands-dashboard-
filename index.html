@@ -254,7 +254,7 @@ select:focus,input:focus{border-color:var(--accent)}
       <div class="topbar">
         <div class="topbar-left">
           <h1>ונונו תומר</h1>
-          <p>הפלגת האיים הסרונים ·  2026 · Saronic Gulf</p>
+          <p>הפלגת האיים הסרונים · יולי 2026 · Saronic Gulf</p>
         </div>
         <div class="topbar-right">
           <div class="tag-pill">
@@ -272,7 +272,7 @@ select:focus,input:focus{border-color:var(--accent)}
             <div class="hero-title"> הפלגת חברים <span>האיים הסרונים</span></div>
             <div class="hero-desc">6 ימים, כ-12 מקטעי הפלגה ונקודות עגינה בין האיים היפים ביותר במפרץ הסרוני</div>
             <div class="hero-pills">
-              <span class="hero-pill">📅 4–10 יולי 2026</span>
+              <span class="hero-pill">📅 4–11 יולי 2026</span>
               <span class="hero-pill">📍 Alimos Marina</span>
               <span class="hero-pill">🌊 Saronic Gulf</span>
             </div>
@@ -797,7 +797,8 @@ function rowToData(row) {
   if (dateRaw) {
     var d = new Date(dateRaw);
     if (!isNaN(d.getTime())) {
-      dateISO = d.toISOString().slice(0,10);
+      // Fix UTC shift: use local date not UTC
+      dateISO = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
     } else {
       var m = dateRaw.match(/(\d{1,2})[\/.](\d{1,2})[\/.](\d{2,4})/);
       if (m) {
