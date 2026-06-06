@@ -145,7 +145,7 @@ select:focus,input:focus{border-color:var(--accent)}
 .leg-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius2);padding:15px 17px;border-right:3px solid transparent;-webkit-transition:border-color .2s,-webkit-transform .2s;transition:border-color .2s,transform .2s}
 .leg-card:hover{border-color:var(--border2);-webkit-transform:translateY(-2px);transform:translateY(-2px)}
 .leg-card.leg{border-right-color:var(--accent)}
-.leg-card.spot{border-right-color:var(--amber)}
+.leg-card.spot{border-right-color:var(--amber)}.leg-card.fl{border-right-color:#a78bfa}.flight-type{background:rgba(167,139,250,0.1);color:#a78bfa;border:1px solid rgba(167,139,250,0.25)}
 .leg-top{display:flex;align-items:center;gap:10px;margin-bottom:11px}
 .leg-badge{font-size:11px;font-weight:600;padding:4px 11px;border-radius:999px}
 .leg-badge.leg-type{background:rgba(56,189,248,0.1);color:var(--accent);border:1px solid rgba(56,189,248,0.2)}
@@ -690,12 +690,13 @@ function applyFilters(){
       var isSpot=item.type==='Spot';
       var coord=parseCoord(item.coordTo);
       var displayCoords=isSpot?item.coordTo:(item.coordFrom&&item.coordTo?item.coordFrom+'  →  '+item.coordTo:item.coordTo);
-      var badgeLabel=isSpot?'📍 SPOT':'⚓ '+item.leg;
+      var isFlight = item.type === 'Flight';
+      var badgeLabel = isSpot ? '📍 SPOT' : (isFlight ? '✈️ טיסה' : '⚓ '+item.leg);
       var titleName=isSpot?item.to:item.from+' → '+item.to;
 
       html+='<div class="leg-card '+(isSpot?'spot':'leg')+'">'
         +'<div class="leg-top">'
-        +'<span class="leg-badge '+(isSpot?'spot-type':'leg-type')+'">'+badgeLabel+'</span>'
+        +'<span class="leg-badge '+(isSpot?'spot-type':(isFlight?'flight-type':'leg-type'))+'">'+badgeLabel+'</span>'
         +'<span class="leg-name">'+titleName+'</span>'
         +'</div>';
 
@@ -709,9 +710,14 @@ function applyFilters(){
         }
       }
 
-      if(displayCoords){
-        html+='<div class="leg-coords">🧭 <span class="coord-text">'+displayCoords+'</span>'
-          +'<button class="copy-btn" onclick="copyText('+JSON.stringify(displayCoords)+',this)" title="העתק">⎘</button>'
+      if(isFlight) {
+        var depArr = '';
+        if(item.coordFrom) depArr += '🛫 המראה: '+item.coordFrom+'  ';
+        if(item.coordTo) depArr += '🛬 נחיתה: '+item.coordTo;
+        if(depArr) html+='<div class="leg-coords" style="font-family:inherit">'+depArr.trim()+'</div>';
+      } else if(displayCoords){
+        html+='<div class="leg-coords">🧭 <span class="co-t">'+displayCoords+'</span>'
+          +'<button class="copy-btn" onclick="cp('+JSON.stringify(displayCoords)+',this)">⎘</button>'
           +'</div>';
       }
 
@@ -791,13 +797,26 @@ function rowToData(row) {
   if (!leg) return null;
   if (['Leg','Departure','Destination'].indexOf(leg) !== -1 || from === 'Departure' || to === 'Destination') return null;
 
-  var type = (leg && leg.toLowerCase().indexOf('spot') !== -1) ? 'Spot' : 'Leg';
+  var type = 'Leg';
+  if (leg) {
+    var legL = leg.toLowerCase();
+    if (legL.indexOf('spot') !== -1) type = 'Spot';
+    else if (legL.indexOf('טיסה') !== -1 || legL.indexOf('flight') !== -1) type = 'Flight';
+  }
   var dateRaw = findVal(row, ['תאריך','Date','date']);
   var dateISO = '';
   if (dateRaw) {
-    var d = new Date(dateRaw);
-    if (!isNaN(d.getTime())) {
-      // Fix UTC shift: use local date not UTC
+    // Parse date safely - avoid UTC timezone shift
+    var dateStr = String(dateRaw).trim();
+    // Try DD/MM/YYYY or DD/MM/YY format first
+    var dmyMatch = dateStr.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
+    if (dmyMatch) {
+      var yr = dmyMatch[3].length===2 ? '20'+dmyMatch[3] : dmyMatch[3];
+      dateISO = yr+'-'+dmyMatch[2].padStart(2,'0')+'-'+dmyMatch[1].padStart(2,'0');
+    } else {
+      // ISO or other format - parse but use noon to avoid UTC shift
+      var d = new Date(dateStr.replace(/-/g,'/'));
+      if (!isNaN(d.getTime())) {
       dateISO = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
     } else {
       var m = dateRaw.match(/(\d{1,2})[\/.](\d{1,2})[\/.](\d{2,4})/);
