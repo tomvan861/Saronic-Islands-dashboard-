@@ -215,7 +215,7 @@ select:focus,input:focus{border-color:var(--accent)}
 .flight-kpi-card::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at top left,rgba(167,139,250,0.06),transparent 60%)}
 .fk-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .fk-icon{font-size:22px}
-.fk-back{-webkit-transform:scaleY(-1);transform:scaleY(-1);display:inline-block}
+
 .fk-title{font-size:13px;font-weight:700;color:var(--tx);flex:1}
 .fk-date{font-size:11px;color:var(--ac);background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.2);border-radius:999px;padding:2px 10px}
 .fk-route{font-size:14px;font-weight:600;color:var(--tx);margin-bottom:12px;line-height:1.4}
@@ -319,7 +319,7 @@ select:focus,input:focus{border-color:var(--accent)}
         </div>
         <div class="flight-kpi-card" id="flight-back-card">
           <div class="fk-header">
-            <span class="fk-icon fk-back">🛬</span>
+            <span class="fk-icon">🛬</span>
             <span class="fk-title">טיסה חזור</span>
             <span class="fk-date" id="flight-back-date">—</span>
           </div>
@@ -709,7 +709,7 @@ function filterByDate(date){
 function applyFilters(){
   var dateVal=document.getElementById('date-filter').value;
   var placeVal=document.getElementById('place-filter').value.toLowerCase().trim();
-  var filtered=DATA.filter(function(d){
+  var filtered=DATA.filter(function(d){ if(d.type==='Flight'||(d.leg&&d.leg.indexOf('טיסה')!==-1)) return false;
     if(dateVal&&d.date!==dateVal) return false;
     if(activeType!=='all'&&d.type!==activeType) return false;
     if(placeVal&&(d.from+' '+d.to).toLowerCase().indexOf(placeVal)===-1) return false;
@@ -964,7 +964,7 @@ function updateSummaryMetrics() {
   // Update dynamic date pill
   var pillEl = document.getElementById('hero-pill-days');
   if (pillEl && sortedDates.length > 0) {
-    pillEl.textContent = sortedDates.length + ' ימים · ' + formatDateRange(sortedDates[0], sortedDates[sortedDates.length-1]);
+    pillEl.textContent = sortedDates.length + ' ימי הפלגה · ' + formatDateRange(sortedDates[0], sortedDates[sortedDates.length-1]);
   }
 
   // Update flight cards
