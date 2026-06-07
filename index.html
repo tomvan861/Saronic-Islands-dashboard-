@@ -951,7 +951,11 @@ function updateFlightCards() {
 }
 
 function updateSummaryMetrics() {
-  var legs = DATA.filter(function(d){ return d.type === 'Leg'; });
+  var legs = DATA.filter(function(d){
+    if (d.type !== 'Leg') return false;
+    if (d.leg && d.leg.indexOf('טיסה') !== -1) return false;
+    return true;
+  });
   var spots = DATA.filter(function(d){ return d.type === 'Spot'; });
   var dates = {};
   legs.forEach(function(d){ if (d.date) dates[d.date] = true; });
