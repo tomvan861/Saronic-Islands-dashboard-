@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#00d4aa">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Saronic Islands">
+  <link rel="apple-touch-icon" href="icon.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ונונו תומר — הפלגת האיים הסרונים 2026</title>
@@ -1003,5 +1009,10 @@ loadFromSheets(function(sheetData, live) {
   runDashboard();
 });
 </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+  </script>
 </body>
 </html>
