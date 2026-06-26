@@ -201,13 +201,30 @@
     flex: 1 1 auto;
     min-height: 320px;
     box-shadow: 0 8px 24px -10px rgba(0,0,0,0.5);
+    cursor: zoom-in;
   }
-  .map-frame iframe{
+  .map-frame img{
     position:absolute;
     inset:0;
     width:100%;
     height:100%;
-    border:0;
+    object-fit: contain;
+    display:block;
+  }
+  .map-zoom-hint{
+    position:absolute;
+    bottom:10px;
+    inset-inline-end:10px;
+    width:34px;
+    height:34px;
+    border-radius:10px;
+    background: rgba(6,13,26,0.65);
+    backdrop-filter: blur(4px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:15px;
+    pointer-events:none;
   }
 
   .day-selector{
@@ -652,6 +669,73 @@
   .insurance-note .it{ font-size:12.5px; color: var(--ink); line-height:1.45; }
   .insurance-note .it b{ color: var(--ink); }
 
+  /* ---------- LIGHTBOX ---------- */
+  .lightbox{
+    position:fixed;
+    inset:0;
+    background: rgba(2,6,14,0.94);
+    z-index:50;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding: calc(20px + var(--safe-top)) 16px calc(20px + var(--safe-bottom));
+  }
+  .lightbox.open{ display:flex; }
+  .lightbox img{
+    max-width:100%;
+    max-height:100%;
+    object-fit:contain;
+    border-radius:10px;
+  }
+  .lightbox-close{
+    position:absolute;
+    top: calc(16px + var(--safe-top));
+    inset-inline-end:16px;
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    border:1px solid var(--border2);
+    background: rgba(255,255,255,0.06);
+    color: var(--ink);
+    font-size:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    z-index:51;
+  }
+  .lb-dots{
+    position:absolute;
+    bottom: calc(20px + var(--safe-bottom));
+    inset-inline-start:50%;
+    transform: translateX(-50%);
+    display:flex;
+    gap:6px;
+  }
+  .lb-dot{
+    width:7px; height:7px;
+    border-radius:50%;
+    background: rgba(255,255,255,0.3);
+  }
+  .lb-dot.active{ background: var(--gold); }
+
+  /* ---------- TOPIC CARD WITH IMAGE LINK ---------- */
+  .topic-card.has-image{
+    cursor:pointer;
+    position:relative;
+  }
+  .topic-card.has-image::after{
+    content:'🔍';
+    position:absolute;
+    bottom:10px;
+    inset-inline-end:10px;
+    font-size:12px;
+    opacity:0.6;
+  }
+  .topic-card.has-image:active{
+    background: var(--panel2);
+  }
+
   @media (max-width: 360px){
     h1.slide-title{ font-size:24px; }
     .map-frame{ min-height: 260px; }
@@ -679,10 +763,11 @@
     <section class="slide active" data-slide="0">
       <div class="slide-inner">
         <h1 class="slide-title">מסלול הפלגה</h1>
-        <p class="slide-subtitle">לחצו על יום כדי לראות לאן פנינו מועדות. המפה המלאה מוטמעת למטה.</p>
+        <p class="slide-subtitle">לחצו על יום לתאריך הרלוונטי. לחצו על התמונה להגדלה.</p>
 
-        <div class="map-frame">
-          <iframe src="https://www.google.com/maps/d/embed?mid=1no9wJpVvFANLK1KZTEsrkOzG_vbQ0z0" loading="lazy"></iframe>
+        <div class="map-frame" id="routeImageFrame">
+          <img id="routeImage" src="" alt="מסלול היום" />
+          <div class="map-zoom-hint">🔍</div>
         </div>
 
         <div class="day-selector" id="daySelector"></div>
@@ -825,7 +910,7 @@
           </div>
           <div class="topic-card">
             <span class="ti-icon">⛵</span>
-            <span class="ti-label">מעקה ריילינג</span>
+            <span class="ti-label">רייטינג</span>
           </div>
           <div class="topic-card">
             <span class="ti-icon">🌊</span>
@@ -835,13 +920,17 @@
             <span class="ti-icon">🏊</span>
             <span class="ti-label">שחייה</span>
           </div>
-          <div class="topic-card">
+          <div class="topic-card has-image" data-img="images/switch.jpg" data-label="לחצן הפעלת אסלה">
             <span class="ti-icon">🚽</span>
             <span class="ti-label">אסלות</span>
           </div>
           <div class="topic-card" style="grid-column: span 2;">
             <span class="ti-icon">♻️</span>
             <span class="ti-label">מכלי ביוב</span>
+          </div>
+          <div class="topic-card has-image" style="grid-column: span 2;" data-img="images/plan.jpg,images/plan2.jpg" data-label="תוכנית הסיפון — BALI 4.6">
+            <span class="ti-icon">⛴️</span>
+            <span class="ti-label">BALI 4.6</span>
           </div>
         </div>
       </div>
@@ -854,36 +943,43 @@
     <div class="dots" id="dots"></div>
     <button class="nav-btn next" id="nextBtn">‹ הבא</button>
   </div>
+
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" id="lightboxClose">✕</button>
+    <img id="lightboxImg" src="" alt="">
+    <div class="lb-dots" id="lightboxDots"></div>
+  </div>
 </div>
 
 <script>
   // ---- מסלול הפלגה — מתוך גיליון "לתדרוך" ----
   const days = [
-    {n:'ראשון', d:'05.07', color:'chip-sun', legs:[
+    {n:'ראשון', d:'05.07', color:'chip-sun', img:'images/day-sun.jpg', legs:[
       {from:'Alimos Marina', to:'Poros'}
     ]},
-    {n:'שני', d:'06.07', color:'chip-mon', legs:[
+    {n:'שני', d:'06.07', color:'chip-mon', img:'images/day-mon.jpg', legs:[
       {from:'Poros', to:'Cape Skyli South'},
       {from:'Cape Skyli South', to:'Ermioni'}
     ]},
-    {n:'שלישי', d:'07.07', color:'chip-tue', legs:[
+    {n:'שלישי', d:'07.07', color:'chip-tue', img:'images/day-tue.jpg', legs:[
       {from:'Ermioni', to:'Khersonisos Ermionis'},
       {from:'Khersonisos Ermionis', to:'Spetses'}
     ]},
-    {n:'רביעי', d:'08.07', color:'chip-wed', legs:[
+    {n:'רביעי', d:'08.07', color:'chip-wed', img:'images/day-wed.jpg', legs:[
       {from:'Spetses', to:'Mandraki'}
     ]},
-    {n:'חמישי', d:'09.07', color:'chip-thu', legs:[
+    {n:'חמישי', d:'09.07', color:'chip-thu', img:'images/day-thu.jpg', legs:[
       {from:'Mandraki', to:'Moni'},
       {from:'Moni', to:'Perdika'}
     ]},
-    {n:'שישי', d:'10.07', color:'chip-fri', legs:[
+    {n:'שישי', d:'10.07', color:'chip-fri', img:'images/day-fri.jpg', legs:[
       {from:'Perdika', to:'Alimos Marina'}
     ]},
   ];
 
   const daySelector = document.getElementById('daySelector');
   const dayDetail = document.getElementById('dayDetail');
+  const routeImage = document.getElementById('routeImage');
 
   function renderDays(activeIdx){
     daySelector.innerHTML = '';
@@ -896,6 +992,8 @@
     });
 
     const day = days[activeIdx];
+    routeImage.src = day.img;
+    routeImage.alt = `מסלול יום ${day.n}`;
 
     dayDetail.innerHTML = day.legs.map((leg, idx) => `
       <div class="leg-block">
@@ -906,6 +1004,52 @@
   }
   function selectDay(i){ renderDays(i); }
   renderDays(0);
+
+  // ---- Lightbox ----
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxClose = document.getElementById('lightboxClose');
+  let lightboxGallery = [];
+  let lightboxIndex = 0;
+
+  function showLightboxImage(){
+    lightboxImg.src = lightboxGallery[lightboxIndex];
+    let dots = document.getElementById('lightboxDots');
+    if(dots){
+      dots.innerHTML = lightboxGallery.length > 1
+        ? lightboxGallery.map((_,i)=>`<span class="lb-dot${i===lightboxIndex?' active':''}"></span>`).join('')
+        : '';
+    }
+  }
+  function openLightbox(srcOrList, alt){
+    lightboxGallery = Array.isArray(srcOrList) ? srcOrList : String(srcOrList).split(',');
+    lightboxIndex = 0;
+    lightboxImg.alt = alt || '';
+    showLightboxImage();
+    lightbox.classList.add('open');
+  }
+  function closeLightbox(){
+    lightbox.classList.remove('open');
+  }
+  lightboxClose.addEventListener('click', closeLightbox);
+  lightbox.addEventListener('click', (e)=>{
+    if(e.target === lightbox){ closeLightbox(); return; }
+    if(e.target === lightboxImg && lightboxGallery.length > 1){
+      lightboxIndex = (lightboxIndex + 1) % lightboxGallery.length;
+      showLightboxImage();
+    }
+  });
+  document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeLightbox(); });
+
+  document.getElementById('routeImageFrame').addEventListener('click', ()=>{
+    openLightbox(routeImage.src, routeImage.alt);
+  });
+
+  document.querySelectorAll('.topic-card.has-image').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      openLightbox(card.dataset.img, card.dataset.label || '');
+    });
+  });
 
   // ---- Slide navigation ----
   const slides = Array.from(document.querySelectorAll('.slide'));
