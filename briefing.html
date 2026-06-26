@@ -2,7 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>תדריך הפלגה — יולי 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -139,6 +139,7 @@
     overflow:hidden;
     z-index:1;
     background: var(--bg);
+    touch-action: pan-y;
   }
   .slide{
     position:absolute;
@@ -683,6 +684,7 @@
   .lightbox.open{ display:flex; }
   .lightbox img{
     max-width:100%;
+    touch-action: pinch-zoom;
     max-height:100%;
     object-fit:contain;
     border-radius:10px;
