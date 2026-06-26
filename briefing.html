@@ -19,6 +19,12 @@
     --line:rgba(11,61,76,0.14);
     --danger:#B5543A;
     --good:#3E7D5A;
+    --day-sun:#E08A3C;
+    --day-mon:#3E9C5E;
+    --day-tue:#D4B43C;
+    --day-wed:#D9608F;
+    --day-thu:#8B5FBF;
+    --day-fri:#3B82C4;
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
   }
@@ -50,18 +56,35 @@
   /* ---------- TOP CHROME ---------- */
   .topbar{
     padding: calc(14px + var(--safe-top)) 18px 12px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
     background: var(--deep);
     flex-shrink:0;
     position:relative;
     z-index:5;
   }
+  .topbar-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .back-link{
+    flex-shrink:0;
+    width:30px;
+    height:30px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:9px;
+    background: rgba(247,244,236,0.08);
+    color: var(--cream);
+    text-decoration:none;
+    font-size:15px;
+  }
+  .back-link:active{ background: rgba(247,244,236,0.16); }
   .topbar .brand{
     display:flex;
     align-items:baseline;
     gap:8px;
+    flex:1;
   }
   .topbar .brand .mark{
     font-family:'Frank Ruhl Libre', serif;
@@ -79,6 +102,7 @@
   }
   .progress-track{
     height:3px;
+    width:100%;
     background: rgba(247,244,236,0.14);
     border-radius:3px;
     overflow:hidden;
@@ -155,8 +179,8 @@
     overflow:hidden;
     border:1px solid var(--line);
     background:#dfe7e6;
-    height: 280px;
-    flex-shrink:0;
+    flex: 1 1 auto;
+    min-height: 320px;
     box-shadow: 0 8px 24px -10px rgba(11,61,76,0.35);
   }
   .map-frame iframe{
@@ -199,6 +223,7 @@
     padding: 16px 0 4px;
     -webkit-overflow-scrolling: touch;
     scrollbar-width:none;
+    flex-shrink:0;
   }
   .day-selector::-webkit-scrollbar{display:none;}
   .day-chip{
@@ -206,7 +231,7 @@
     width:54px;
     height:54px;
     border-radius:12px;
-    border:1px solid var(--line);
+    border:2px solid var(--line);
     background: #fff;
     display:flex;
     flex-direction:column;
@@ -217,16 +242,28 @@
     transition: all .2s ease;
     font-family:'Heebo', sans-serif;
   }
-  .day-chip .n{ font-size:10px; color: var(--ink-soft); font-weight:500;}
+  .day-chip .n{ font-size:9.5px; color: var(--ink-soft); font-weight:600;}
   .day-chip .d{ font-size:14px; font-weight:700; color: var(--deep); font-family:'JetBrains Mono', monospace;}
+
+  .day-chip.chip-sun{ border-color: var(--day-sun); }
+  .day-chip.chip-mon{ border-color: var(--day-mon); }
+  .day-chip.chip-tue{ border-color: var(--day-tue); }
+  .day-chip.chip-wed{ border-color: var(--day-wed); }
+  .day-chip.chip-thu{ border-color: var(--day-thu); }
+  .day-chip.chip-fri{ border-color: var(--day-fri); }
+
   .day-chip.active{
-    background: var(--deep);
-    border-color: var(--deep);
     transform: translateY(-2px);
-    box-shadow: 0 6px 14px -4px rgba(11,61,76,0.5);
+    box-shadow: 0 6px 14px -4px rgba(11,61,76,0.4);
   }
-  .day-chip.active .n{ color: var(--gold); }
-  .day-chip.active .d{ color: var(--cream); }
+  .day-chip.active .n{ color: rgba(255,255,255,0.85); }
+  .day-chip.active .d{ color: #fff; }
+  .day-chip.chip-sun.active{ background: var(--day-sun); }
+  .day-chip.chip-mon.active{ background: var(--day-mon); }
+  .day-chip.chip-tue.active{ background: var(--day-tue); }
+  .day-chip.chip-wed.active{ background: var(--day-wed); }
+  .day-chip.chip-thu.active{ background: var(--day-thu); }
+  .day-chip.chip-fri.active{ background: var(--day-fri); }
 
   .day-detail{
     margin-top:14px;
@@ -234,6 +271,7 @@
     border:1px solid var(--line);
     border-radius:14px;
     padding:14px 16px;
+    flex-shrink:0;
   }
   .day-detail .route-line{
     display:flex;
@@ -631,7 +669,7 @@
 
   @media (max-width: 360px){
     h1.slide-title{ font-size:24px; }
-    .map-frame{ height:240px; }
+    .map-frame{ min-height: 260px; }
     .topic-card{ min-height:92px; padding:13px 12px; }
   }
 </style>
@@ -640,9 +678,12 @@
 
 <div class="app">
   <div class="topbar">
-    <div class="brand">
-      <span class="mark">תדריך הפלגה</span>
-      <span class="sub" id="slideCounter">01 / 04</span>
+    <div class="topbar-row">
+      <a href="index.html" class="back-link" title="חזרה לדאשבורד">⌂</a>
+      <div class="brand">
+        <span class="mark">תדריך הפלגה</span>
+        <span class="sub" id="slideCounter">01 / 04</span>
+      </div>
     </div>
     <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:20%"></div></div>
   </div>
@@ -652,7 +693,6 @@
     <!-- SLIDE 1 — ROUTE -->
     <section class="slide active" data-slide="0">
       <div class="slide-inner">
-        <p class="eyebrow">מסלול לפי יום</p>
         <h1 class="slide-title">מסלול הפלגה</h1>
         <p class="slide-subtitle">לחצו על יום כדי לראות לאן פנינו מועדות. המפה המלאה מוטמעת למטה.</p>
 
@@ -838,25 +878,25 @@
 <script>
   // ---- מסלול הפלגה — מתוך גיליון "לתדרוך" ----
   const days = [
-    {n:'יום 1', d:'05.07', dow:'יום א׳', legs:[
+    {n:'ראשון', d:'05.07', color:'chip-sun', legs:[
       {from:'Alimos Marina', to:'Poros'}
     ]},
-    {n:'יום 2', d:'06.07', dow:'יום ב׳', legs:[
+    {n:'שני', d:'06.07', color:'chip-mon', legs:[
       {from:'Poros', to:'Cape Skyli South'},
       {from:'Cape Skyli South', to:'Ermioni'}
     ]},
-    {n:'יום 3', d:'07.07', dow:'יום ג׳', legs:[
+    {n:'שלישי', d:'07.07', color:'chip-tue', legs:[
       {from:'Ermioni', to:'Khersonisos Ermionis'},
       {from:'Khersonisos Ermionis', to:'Spetses'}
     ]},
-    {n:'יום 4', d:'08.07', dow:'יום ד׳', legs:[
+    {n:'רביעי', d:'08.07', color:'chip-wed', legs:[
       {from:'Spetses', to:'Mandraki'}
     ]},
-    {n:'יום 5', d:'09.07', dow:'יום ה׳', legs:[
+    {n:'חמישי', d:'09.07', color:'chip-thu', legs:[
       {from:'Mandraki', to:'Moni'},
       {from:'Moni', to:'Perdika'}
     ]},
-    {n:'יום 6', d:'10.07', dow:'יום ו׳', legs:[
+    {n:'שישי', d:'10.07', color:'chip-fri', legs:[
       {from:'Perdika', to:'Alimos Marina'}
     ]},
   ];
@@ -870,9 +910,8 @@
     daySelector.innerHTML = '';
     days.forEach((day, i)=>{
       const chip = document.createElement('div');
-      chip.className = 'day-chip' + (i===activeIdx ? ' active' : '');
-      const dayNum = day.n.replace('יום ','');
-      chip.innerHTML = `<span class="n">יום ${dayNum}</span><span class="d">${day.d}</span>`;
+      chip.className = 'day-chip ' + day.color + (i===activeIdx ? ' active' : '');
+      chip.innerHTML = `<span class="n">${day.n}</span><span class="d">${day.d}</span>`;
       chip.addEventListener('click', ()=> selectDay(i));
       daySelector.appendChild(chip);
     });
@@ -881,7 +920,9 @@
     const firstLeg = day.legs[0];
     const lastLeg = day.legs[day.legs.length-1];
 
-    mapDayTag.textContent = `${day.n} · ${day.dow} ${day.d}`;
+    const colorVarMap = {'chip-sun':'--day-sun','chip-mon':'--day-mon','chip-tue':'--day-tue','chip-wed':'--day-wed','chip-thu':'--day-thu','chip-fri':'--day-fri'};
+    mapDayTag.style.color = `var(${colorVarMap[day.color]})`;
+    mapDayTag.textContent = `יום ${day.n} · ${day.d}`;
     mapDayRoute.textContent = day.legs.length > 1
       ? `${firstLeg.from} ← ${lastLeg.to}`
       : `${firstLeg.from} ← ${firstLeg.to}`;
@@ -929,11 +970,14 @@
     progressFill.style.width = `${((current+1)/total)*100}%`;
     slideCounter.textContent = `${String(current+1).padStart(2,'0')} / ${String(total).padStart(2,'0')}`;
     prevBtn.disabled = current === 0;
-    nextBtn.textContent = current === total-1 ? '✓ סיום' : '‹ הבא';
+    nextBtn.textContent = current === total-1 ? '⌂ לדאשבורד' : '‹ הבא';
   }
 
   prevBtn.addEventListener('click', ()=> goTo(current-1));
-  nextBtn.addEventListener('click', ()=> goTo(current+1));
+  nextBtn.addEventListener('click', ()=>{
+    if(current === total-1){ window.location.href = 'index.html'; return; }
+    goTo(current+1);
+  });
 
   // Swipe support
   let touchStartX = null;
