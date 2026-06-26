@@ -79,6 +79,8 @@ body:not(.light)::before{content:'';position:fixed;inset:0;pointer-events:none;z
 .hero-desc{font-size:13px;color:rgba(255,255,255,0.5);max-width:400px;line-height:1.7}
 .hero-pills{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
 .hero-pill{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:999px;padding:5px 13px;font-size:12px;color:rgba(255,255,255,0.6)}
+.hero-pill-cta{background:rgba(56,189,248,0.14);border-color:rgba(56,189,248,0.35);color:var(--accent);text-decoration:none;font-weight:600;cursor:pointer;transition:background .2s,border-color .2s}
+.hero-pill-cta:hover{background:rgba(56,189,248,0.22);border-color:rgba(56,189,248,0.55)}
 .hero-right{text-align:center;flex-shrink:0}
 .hero-nm{font-size:58px;font-weight:900;color:#fff;line-height:1;letter-spacing:-2px}
 .hero-nm-label{font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px}
@@ -296,6 +298,7 @@ select:focus,input:focus{border-color:var(--accent)}
               <span class="hero-pill">📅 <span id="hero-pill-days">...</span></span>
               <span class="hero-pill">📍 Alimos Marina</span>
               <span class="hero-pill">🌊 Saronic Gulf</span>
+              <a href="briefing.html" class="hero-pill hero-pill-cta">📋 תדריך</a>
             </div>
           </div>
           <div class="hero-right">
